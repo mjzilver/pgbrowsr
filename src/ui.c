@@ -37,7 +37,7 @@ label_setup (GtkListItemFactory *factory, GtkListItem *item, gpointer user_data)
 
   GtkWidget *label = gtk_label_new (NULL);
   gtk_label_set_xalign (GTK_LABEL (label), 0.0f);
-  // Add horizontal margins for better spacing
+
   gtk_widget_set_margin_start (label, 8);
   gtk_widget_set_margin_end (label, 8);
   gtk_widget_set_margin_top (label, 2);
@@ -180,10 +180,18 @@ on_fetch_clicked (GtkWidget *button, gpointer user_data)
       g_signal_connect (factory, "bind", G_CALLBACK (data_bind),
                         GINT_TO_POINTER (c));
 
-      char title[32];
-      g_snprintf (title, sizeof (title), "Col %d", c + 1);
+      const char *col_name = NULL;
+      if (app->schema_store && g_list_model_get_n_items (G_LIST_MODEL (
+                                   app->schema_store)) > (guint) c)
+        {
+          SchemaRow *schema_row =
+              g_list_model_get_item (G_LIST_MODEL (app->schema_store), c);
+          col_name = schema_row_get_name (schema_row);
+          g_object_unref (schema_row);
+        }
 
-      GtkColumnViewColumn *column = gtk_column_view_column_new (title, factory);
+      GtkColumnViewColumn *column =
+          gtk_column_view_column_new (col_name, factory);
 
       gtk_column_view_append_column (GTK_COLUMN_VIEW (app->data_view), column);
     }
