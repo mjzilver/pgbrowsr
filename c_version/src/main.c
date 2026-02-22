@@ -8,8 +8,7 @@ main (int argc, char **argv)
   if (!db_connect ())
     return 1;
 
-  GtkApplication *app = gtk_application_new ("org.example.dbexplorer",
-                                             G_APPLICATION_DEFAULT_FLAGS);
+  GtkApplication *app = gtk_application_new ("org.example.dbexplorer", G_APPLICATION_DEFAULT_FLAGS);
 
   g_signal_connect (app, "activate", G_CALLBACK (ui_activate), NULL);
 

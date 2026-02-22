@@ -47,9 +47,7 @@ label_setup (GtkListItemFactory *factory, GtkListItem *item, gpointer user_data)
 }
 
 static void
-schema_name_bind (GtkListItemFactory *factory,
-                  GtkListItem *item,
-                  gpointer user_data)
+schema_name_bind (GtkListItemFactory *factory, GtkListItem *item, gpointer user_data)
 {
   (void) factory;
   (void) user_data;
@@ -62,9 +60,7 @@ schema_name_bind (GtkListItemFactory *factory,
 }
 
 static void
-schema_type_bind (GtkListItemFactory *factory,
-                  GtkListItem *item,
-                  gpointer user_data)
+schema_type_bind (GtkListItemFactory *factory, GtkListItem *item, gpointer user_data)
 {
   (void) factory;
   (void) user_data;
@@ -77,9 +73,7 @@ schema_type_bind (GtkListItemFactory *factory,
 }
 
 static void
-schema_nullable_bind (GtkListItemFactory *factory,
-                      GtkListItem *item,
-                      gpointer user_data)
+schema_nullable_bind (GtkListItemFactory *factory, GtkListItem *item, gpointer user_data)
 {
   (void) factory;
   (void) user_data;
@@ -102,8 +96,7 @@ data_bind (GtkListItemFactory *factory, GtkListItem *item, gpointer user_data)
 
   GenericRow *row = gtk_list_item_get_item (item);
 
-  gtk_label_set_text (GTK_LABEL (label),
-                      generic_row_get_value (row, column_index));
+  gtk_label_set_text (GTK_LABEL (label), generic_row_get_value (row, column_index));
 }
 
 static void
@@ -114,6 +107,12 @@ on_table_clicked (GtkWidget *button, gpointer user_data)
   AppWidgets *app = user_data;
 
   const char *table_name = gtk_button_get_label (GTK_BUTTON (button));
+
+  if (app->current_table && strcmp (table_name, app->current_table) == 0)
+    return;
+
+  g_list_store_remove_all (app->data_store);
+  clear_column_view (GTK_COLUMN_VIEW (app->data_view));
 
   g_free (app->current_table);
   app->current_table = g_strdup (table_name);
@@ -177,21 +176,17 @@ on_fetch_clicked (GtkWidget *button, gpointer user_data)
 
       g_signal_connect (factory, "setup", G_CALLBACK (label_setup), NULL);
 
-      g_signal_connect (factory, "bind", G_CALLBACK (data_bind),
-                        GINT_TO_POINTER (c));
+      g_signal_connect (factory, "bind", G_CALLBACK (data_bind), GINT_TO_POINTER (c));
 
       const char *col_name = NULL;
-      if (app->schema_store && g_list_model_get_n_items (G_LIST_MODEL (
-                                   app->schema_store)) > (guint) c)
+      if (app->schema_store && g_list_model_get_n_items (G_LIST_MODEL (app->schema_store)) > (guint) c)
         {
-          SchemaRow *schema_row =
-              g_list_model_get_item (G_LIST_MODEL (app->schema_store), c);
+          SchemaRow *schema_row = g_list_model_get_item (G_LIST_MODEL (app->schema_store), c);
           col_name = schema_row_get_name (schema_row);
           g_object_unref (schema_row);
         }
 
-      GtkColumnViewColumn *column =
-          gtk_column_view_column_new (col_name, factory);
+      GtkColumnViewColumn *column = gtk_column_view_column_new (col_name, factory);
 
       gtk_column_view_append_column (GTK_COLUMN_VIEW (app->data_view), column);
     }
@@ -240,8 +235,7 @@ ui_activate (GtkApplication *app, gpointer user_data)
 
   widgets->data_store = g_list_store_new (TYPE_GENERIC_ROW);
 
-  GtkSelectionModel *schema_sel = GTK_SELECTION_MODEL (
-      gtk_single_selection_new (G_LIST_MODEL (widgets->schema_store)));
+  GtkSelectionModel *schema_sel = GTK_SELECTION_MODEL (gtk_single_selection_new (G_LIST_MODEL (widgets->schema_store)));
 
   widgets->schema_view = gtk_column_view_new (schema_sel);
 
@@ -251,8 +245,7 @@ ui_activate (GtkApplication *app, gpointer user_data)
 
   const char *titles[] = { "Name", "Type", "Nullable" };
 
-  GCallback binds[] = { G_CALLBACK (schema_name_bind),
-                        G_CALLBACK (schema_type_bind),
+  GCallback binds[] = { G_CALLBACK (schema_name_bind), G_CALLBACK (schema_type_bind),
                         G_CALLBACK (schema_nullable_bind) };
 
   for (int i = 0; i < 3; i++)
@@ -263,28 +256,28 @@ ui_activate (GtkApplication *app, gpointer user_data)
 
       g_signal_connect (factory, "bind", binds[i], NULL);
 
-      GtkColumnViewColumn *col =
-          gtk_column_view_column_new (titles[i], factory);
+      GtkColumnViewColumn *col = gtk_column_view_column_new (titles[i], factory);
 
-      gtk_column_view_append_column (GTK_COLUMN_VIEW (widgets->schema_view),
-                                     col);
+      gtk_column_view_append_column (GTK_COLUMN_VIEW (widgets->schema_view), col);
     }
 
   GtkWidget *fetch_btn = gtk_button_new_with_label ("Fetch Top 100");
 
   gtk_box_append (GTK_BOX (right_box), fetch_btn);
 
-  g_signal_connect (fetch_btn, "clicked", G_CALLBACK (on_fetch_clicked),
-                    widgets);
+  g_signal_connect (fetch_btn, "clicked", G_CALLBACK (on_fetch_clicked), widgets);
 
-  GtkSelectionModel *data_sel = GTK_SELECTION_MODEL (
-      gtk_single_selection_new (G_LIST_MODEL (widgets->data_store)));
+  GtkSelectionModel *data_sel = GTK_SELECTION_MODEL (gtk_single_selection_new (G_LIST_MODEL (widgets->data_store)));
 
   widgets->data_view = gtk_column_view_new (data_sel);
 
   gtk_widget_set_vexpand (widgets->data_view, TRUE);
 
-  gtk_box_append (GTK_BOX (right_box), widgets->data_view);
+  GtkWidget *scroll_view = gtk_scrolled_window_new ();
+
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scroll_view), widgets->data_view);
+
+  gtk_box_append (GTK_BOX (right_box), scroll_view);
 
   GPtrArray *tables = db_fetch_table_names ();
 
@@ -296,8 +289,7 @@ ui_activate (GtkApplication *app, gpointer user_data)
 
           GtkWidget *btn = gtk_button_new_with_label (name);
 
-          g_signal_connect (btn, "clicked", G_CALLBACK (on_table_clicked),
-                            widgets);
+          g_signal_connect (btn, "clicked", G_CALLBACK (on_table_clicked), widgets);
 
           gtk_box_append (GTK_BOX (left_box), btn);
         }

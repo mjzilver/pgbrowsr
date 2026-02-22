@@ -84,9 +84,7 @@ db_fetch_schema (const char *table_name)
 
   for (int i = 0; i < rows; i++)
     {
-      SchemaRow *row =
-          schema_row_new (PQgetvalue (res, i, 0), PQgetvalue (res, i, 1),
-                          PQgetvalue (res, i, 2));
+      SchemaRow *row = schema_row_new (PQgetvalue (res, i, 0), PQgetvalue (res, i, 1), PQgetvalue (res, i, 2));
 
       g_list_store_append (store, row);
       g_object_unref (row);
