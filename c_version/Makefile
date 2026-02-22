@@ -17,11 +17,15 @@ GTK_CFLAGS := $(shell pkg-config --cflags gtk4)
 GTK_LDFLAGS := $(shell pkg-config --libs gtk4)
 
 # libpq
-LIBPQ_CFLAGS := -I$(shell pg_config --includedir)
-LIBPQ_LDFLAGS := -lpq
+LIBPQ_CFLAGS  := $(shell pkg-config --cflags libpq)
+LIBPQ_LDFLAGS := $(shell pkg-config --libs libpq)
 
-CFLAGS += $(GTK_CFLAGS) $(LIBPQ_CFLAGS)
-LDFLAGS += $(GTK_LDFLAGS) $(LIBPQ_LDFLAGS)
+# libyaml
+LIBYAML_CFLAGS  := $(shell pkg-config --cflags yaml-0.1)
+LIBYAML_LDFLAGS := $(shell pkg-config --libs yaml-0.1)
+
+CFLAGS  += $(GTK_CFLAGS) $(LIBPQ_CFLAGS) $(LIBYAML_CFLAGS)
+LDFLAGS += $(GTK_LDFLAGS) $(LIBPQ_LDFLAGS) $(LIBYAML_LDFLAGS)
 
 DEBUG ?= 0
 

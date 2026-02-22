@@ -1,4 +1,5 @@
 #include "db.h"
+#include "db_config.h"
 #include "generic-row.h"
 #include "schema-row.h"
 
@@ -7,15 +8,16 @@ static PGconn *db_conn = NULL;
 gboolean
 db_connect (void)
 {
-  db_conn = PQconnectdb ("host=localhost "
-                         "port=5432 "
-                         "dbname=botdb "
-                         "user=botje "
-                         "password=rata");
+  DbConfig config;
 
-  if (PQstatus (db_conn) != CONNECTION_OK)
+  if (!load_db_config ("config.yaml", &config))
     {
-      g_printerr ("DB connection failed: %s\n", PQerrorMessage (db_conn));
+      return FALSE;
+    }
+
+  db_conn = db_connect_from_config (&config);
+  if (db_conn == NULL)
+    {
       return FALSE;
     }
 
@@ -84,7 +86,8 @@ db_fetch_schema (const char *table_name)
 
   for (int i = 0; i < rows; i++)
     {
-      SchemaRow *row = schema_row_new (PQgetvalue (res, i, 0), PQgetvalue (res, i, 1), PQgetvalue (res, i, 2));
+      SchemaRow *row =
+          schema_row_new (PQgetvalue (res, i, 0), PQgetvalue (res, i, 1), PQgetvalue (res, i, 2));
 
       g_list_store_append (store, row);
       g_object_unref (row);

@@ -6,4 +6,4 @@ BinPackParameters: false
 SpaceAfterCStyleCast: true
 DerivePointerAlignment: false
 PointerAlignment: Right
-ColumnLimit: 120
+ColumnLimit: 100

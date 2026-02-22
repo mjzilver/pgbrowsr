@@ -179,7 +179,8 @@ on_fetch_clicked (GtkWidget *button, gpointer user_data)
       g_signal_connect (factory, "bind", G_CALLBACK (data_bind), GINT_TO_POINTER (c));
 
       const char *col_name = NULL;
-      if (app->schema_store && g_list_model_get_n_items (G_LIST_MODEL (app->schema_store)) > (guint) c)
+      if (app->schema_store &&
+          g_list_model_get_n_items (G_LIST_MODEL (app->schema_store)) > (guint) c)
         {
           SchemaRow *schema_row = g_list_model_get_item (G_LIST_MODEL (app->schema_store), c);
           col_name = schema_row_get_name (schema_row);
@@ -235,7 +236,8 @@ ui_activate (GtkApplication *app, gpointer user_data)
 
   widgets->data_store = g_list_store_new (TYPE_GENERIC_ROW);
 
-  GtkSelectionModel *schema_sel = GTK_SELECTION_MODEL (gtk_single_selection_new (G_LIST_MODEL (widgets->schema_store)));
+  GtkSelectionModel *schema_sel =
+      GTK_SELECTION_MODEL (gtk_single_selection_new (G_LIST_MODEL (widgets->schema_store)));
 
   widgets->schema_view = gtk_column_view_new (schema_sel);
 
@@ -267,7 +269,8 @@ ui_activate (GtkApplication *app, gpointer user_data)
 
   g_signal_connect (fetch_btn, "clicked", G_CALLBACK (on_fetch_clicked), widgets);
 
-  GtkSelectionModel *data_sel = GTK_SELECTION_MODEL (gtk_single_selection_new (G_LIST_MODEL (widgets->data_store)));
+  GtkSelectionModel *data_sel =
+      GTK_SELECTION_MODEL (gtk_single_selection_new (G_LIST_MODEL (widgets->data_store)));
 
   widgets->data_view = gtk_column_view_new (data_sel);
 
