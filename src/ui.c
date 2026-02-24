@@ -248,6 +248,7 @@ on_fetch_clicked (GtkWidget *button, gpointer user_data)
 
   g_object_unref (new_data);
 }
+
 static void
 on_run_query_clicked (GtkWidget *button, gpointer user_data)
 {
@@ -274,7 +275,6 @@ on_run_query_clicked (GtkWidget *button, gpointer user_data)
       g_free (text);
       return;
     }
-
 
   GListStore *new_data = db_run_query (text);
 
