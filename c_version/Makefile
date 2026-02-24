@@ -54,6 +54,10 @@ $(OBJ_DIR):
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
 
+asan: clean all
+	$(MAKE) DEBUG=1 CFLAGS="$(CFLAGS) -fsanitize=address -fno-omit-frame-pointer" LDFLAGS="$(LDFLAGS) -fsanitize=address"
+	./$(BIN_DIR)/$(TARGET)
+
 format:
 	clang-format -i $(SRC_DIR)/*.c $(SRC_DIR)/*.h
 

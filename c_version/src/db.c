@@ -1,6 +1,7 @@
 #include "db.h"
 #include "db_config.h"
 #include "generic-row.h"
+#include "gio/gio.h"
 #include "schema-row.h"
 
 static PGconn *db_conn = NULL;
@@ -98,16 +99,9 @@ db_fetch_schema (const char *table_name)
 }
 
 GListStore *
-db_fetch_top_100 (const char *table_name)
+db_run_query (const char *query)
 {
-  char *escaped = PQescapeIdentifier (db_conn, table_name, strlen (table_name));
-
-  char *query = g_strdup_printf ("SELECT * FROM %s LIMIT 100", escaped);
-
-  PQfreemem (escaped);
-
   PGresult *res = PQexec (db_conn, query);
-  g_free (query);
 
   if (PQresultStatus (res) != PGRES_TUPLES_OK)
     {
@@ -128,7 +122,6 @@ db_fetch_top_100 (const char *table_name)
       for (int c = 0; c < cols; c++)
         {
           const char *val = PQgetvalue (res, i, c);
-
           generic_row_set_value (row, c, val ? val : "");
         }
 
@@ -138,4 +131,15 @@ db_fetch_top_100 (const char *table_name)
 
   PQclear (res);
   return store;
+}
+
+GListStore *
+db_fetch_top_100 (const char *table_name)
+{
+  char *escaped = PQescapeIdentifier (db_conn, table_name, strlen (table_name));
+  char *query = g_strdup_printf ("SELECT * FROM %s LIMIT 100", escaped);
+
+  PQfreemem (escaped);
+
+  return db_run_query (query);
 }
